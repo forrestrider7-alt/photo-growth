@@ -1,0 +1,40 @@
+{
+  "name": "Photo Growth Dashboard",
+  "short_name": "Growth",
+  "description": "Photography business growth & strategy tracker",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F4F4F2",
+  "theme_color": "#0D0D0D",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Задачи",
+      "short_name": "Задачи",
+      "url": "./?tab=tasks",
+      "description": "Открыть еженедельные задачи"
+    },
+    {
+      "name": "Аналитика",
+      "short_name": "Статистика",
+      "url": "./?tab=analytics",
+      "description": "Записать еженедельную статистику"
+    }
+  ]
+}

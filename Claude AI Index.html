@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0D0D0D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Growth">
+<link rel="apple-touch-icon" id="ati">
+<link rel="manifest" href="manifest.json">
+<title>Photo Growth</title>
+<style>
+:root {
+  --bg:      #F4F4F2;
+  --surf:    #FFFFFF;
+  --surf2:   #EFEFED;
+  --b1:      rgba(0,0,0,0.07);
+  --b2:      rgba(0,0,0,0.13);
+  --t1:      #0D0D0D;
+  --t2:      #696969;
+  --t3:      #ADADAD;
+  --acc:     #0D0D0D;
+  --acc-i:   #FFFFFF;
+  --ok:      #16A34A;
+  --warn:    #B45309;
+  --r-s:     8px;
+  --r-m:     14px;
+  --r-l:     20px;
+  --sh-s:    0 1px 3px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.04);
+  --sh-m:    0 4px 20px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  --nav-h:   76px;
+  --safe-b:  env(safe-area-inset-bottom,0px);
+  --safe-t:  env(safe-area-inset-top,0px);
+  --hdr-h:   56px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;overflow:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;
+  background:var(--bg);color:var(--t1);font-size:15px;line-height:1.5;
+  height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* ═══ LAYOUT ═══════════════════════════════════════════════ */
+#app{display:flex;height:100%;width:100%;}
+#sidebar{display:none;}
+#main{flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden;min-width:0;}
+
+#hdr{
+  flex-shrink:0;
+  padding:calc(var(--safe-t) + 14px) 20px 14px;
+  background:rgba(244,244,242,0.9);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:20;
+}
+.hdr-logo{
+  font-size:12px;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--t1);
+}
+.hdr-right{font-size:11px;color:var(--t3);letter-spacing:0.02em;}
+
+#content{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--nav-h) + var(--safe-b) + 24px);
+}
+
+#bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(var(--nav-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-top:1px solid var(--b1);
+  display:flex;align-items:flex-start;padding-top:8px;
+  z-index:100;
+}
+.ni{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  border:none;background:none;color:var(--t3);cursor:pointer;
+  padding:4px 0;transition:color 0.15s;
+}
+.ni.on{color:var(--t1);}
+.ni-lbl{font-size:9px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
+.ni svg{width:22px;height:22px;stroke-width:1.5;}
+
+/* DESKTOP */
+@media(min-width:768px){
+  html,body{overflow:auto;height:auto;min-height:100%;}
+  #app{max-width:1120px;margin:0 auto;align-items:flex-start;}
+  #bnav{display:none;}
+  #sidebar{
+    display:flex;flex-direction:column;width:200px;flex-shrink:0;
+    padding:40px 0 40px;position:sticky;top:0;height:100vh;
+    border-right:1px solid var(--b1);background:var(--bg);
+  }
+  .sb-logo{
+    padding:0 24px 28px;font-size:11px;font-weight:800;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--t1);
+    border-bottom:1px solid var(--b1);margin-bottom:8px;line-height:1.4;
+  }
+  .sni{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 24px;font-size:13px;font-weight:500;
+    color:var(--t2);cursor:pointer;border:none;background:none;
+    width:100%;text-align:left;transition:all 0.15s;letter-spacing:0.01em;
+  }
+  .sni.on{color:var(--t1);background:var(--surf);}
+  .sni:hover:not(.on){color:var(--t1);background:var(--surf2);}
+  .sni svg{width:16px;height:16px;stroke-width:1.5;flex-shrink:0;}
+  #main{overflow:visible;height:auto;}
+  #hdr{padding:20px 40px;position:sticky;top:0;z-index:50;background:rgba(244,244,242,0.95);}
+  #content{overflow:visible;padding-bottom:60px;}
+  .pg{padding:32px 40px;}
+}
+
+/* ═══ COMMON COMPONENTS ══════════════════════════════════════ */
+.pg{padding:20px;}
+.pg+.pg{border-top:1px solid var(--b1);}
+
+.sec-lbl{
+  font-size:10px;font-weight:700;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:14px;
+}
+
+.card{
+  background:var(--surf);border-radius:var(--r-l);
+  box-shadow:var(--sh-s);overflow:hidden;
+}
+.card-p{padding:20px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 20px;border-radius:var(--r-s);font-size:14px;font-weight:600;
+  border:none;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em;
+  font-family:inherit;
+}
+.btn-dark{background:var(--acc);color:var(--acc-i);}
+.btn-dark:active{opacity:0.8;transform:scale(0.98);}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--b2);}
+.btn-ghost:active{background:var(--surf2);}
+.btn-full{width:100%;}
+
+.inp{
+  width:100%;padding:12px 14px;font-size:15px;font-family:inherit;
+  border:1px solid var(--b2);border-radius:var(--r-s);background:var(--surf);
+  color:var(--t1);outline:none;transition:border-color 0.15s;-webkit-appearance:none;
+}
+.inp:focus{border-color:var(--acc);}
+.inp-lbl{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;display:block;}
+
+.stat-c{
+  background:var(--surf);border-radius:var(--r-m);padding:18px;
+  box-shadow:var(--sh-s);cursor:pointer;transition:box-shadow 0.15s;
+}
+.stat-c:active{box-shadow:none;background:var(--surf2);}
+.stat-lbl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;}
+.stat-val{font-size:30px;font-weight:800;letter-spacing:-0.03em;color:var(--t1);line-height:1;}
+.stat-sub{font-size:11px;color:var(--t3);margin-top:3px;}
+
+.prog-track{width:100%;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--acc);border-radius:2px;transition:width 0.5s cubic-bezier(.4,0,.2,1);}
+
+/* Accordion */
+.acc-item{border-bottom:1px solid var(--b1);}
+.acc-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:17px 0;cursor:pointer;user-select:none;
+}
+.acc-title{font-size:14px;font-weight:700;color:var(--t1);}
+.acc-sub{font-size:11px;color:var(--t3);margin-top:2px;letter-spacing:0.01em;}
+.acc-chev{
+  width:18px;height:18px;color:var(--t3);flex-shrink:0;
+  transition:transform 0.25s cubic-bezier(.4,0,.2,1);
+}
+.acc-chev.on{transform:rotate(180deg);}
+.acc-body{overflow:hidden;max-height:0;transition:max-height 0.35s cubic-bezier(.4,0,.2,1);}
+.acc-body.on{max-height:3000px;}
+.acc-cnt{padding-bottom:20px;}
+
+/* Task items */
+.ti{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 0;border-bottom:1px solid var(--b1);cursor:pointer;
+  transition:opacity 0.1s;
+}
+.ti:last-child{border-bottom:none;}
+.ti:active{opacity:0.7;}
+.chk{
+  width:20px;height:20px;border-radius:50%;border:1.5px solid var(--b2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;margin-top:1px;
+}
+.chk.on{background:var(--acc);border-color:var(--acc);}
+.ti-txt{font-size:14px;color:var(--t1);line-height:1.45;}
+.ti-txt.done{color:var(--t3);text-decoration:line-through;}
+
+/* Package cards */
+.pk-card{
+  background:var(--surf);border-radius:var(--r-l);padding:24px 20px;
+  box-shadow:var(--sh-s);margin-bottom:10px;
+}
+.pk-card.feat{
+  background:var(--acc);color:var(--acc-i);
+  box-shadow:var(--sh-m);
+}
+.pk-tier{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.45;margin-bottom:4px;}
+.pk-name{font-size:26px;font-weight:800;letter-spacing:-0.025em;margin-bottom:3px;}
+.pk-tag{font-size:13px;opacity:0.55;margin-bottom:20px;}
+.pk-price{font-size:34px;font-weight:800;letter-spacing:-0.035em;}
+.pk-pnote{font-size:11px;opacity:0.4;margin-bottom:20px;}
+.pk-feat{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.pk-feat li{display:flex;gap:8px;font-size:13px;opacity:0.75;}
+.pk-feat li::before{content:'—';opacity:0.4;flex-shrink:0;}
+
+/* Day block in tasks */
+.day-blk{background:var(--surf);border-radius:var(--r-m);margin-bottom:8px;overflow:hidden;box-shadow:var(--sh-s);}
+.day-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;cursor:pointer;
+}
+.day-name{font-size:14px;font-weight:700;}
+.day-meta{font-size:11px;color:var(--t3);margin-top:2px;}
+.day-dots{display:flex;gap:5px;align-items:center;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--surf2);}
+.dot.on{background:var(--ok);}
+.day-body{border-top:1px solid var(--b1);padding:4px 16px 6px;}
+
+/* Pillar card */
+.pillar{border:1px solid var(--b1);border-radius:var(--r-m);padding:16px;margin-bottom:10px;}
+.pillar-n{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3);margin-bottom:4px;}
+.pillar-name{font-size:15px;font-weight:700;margin-bottom:6px;}
+.pillar-desc{font-size:13px;color:var(--t2);line-height:1.5;}
+.hook{
+  background:var(--surf2);border-radius:6px;padding:11px 13px;
+  font-size:12px;color:var(--t2);font-style:italic;margin-top:9px;
+  border-left:2px solid var(--acc);
+}
+
+/* Highlight item */
+.hl{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--b1);}
+.hl:last-child{border-bottom:none;}
+.hl-n{font-size:10px;font-weight:800;color:var(--t3);width:20px;flex-shrink:0;margin-top:2px;}
+.hl-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.hl-desc{font-size:12px;color:var(--t2);}
+
+/* Chart */
+.chart-wrap{background:var(--surf);border-radius:var(--r-l);padding:20px;box-shadow:var(--sh-s);}
+.chart-lbl{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3);margin-bottom:14px;}
+
+/* Modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.modal-bg.on{display:flex;}
+@media(min-width:768px){.modal-bg{align-items:center;}}
+.modal-box{
+  background:var(--surf);border-radius:var(--r-l) var(--r-l) 0 0;
+  padding:24px 20px calc(20px + var(--safe-b));width:100%;max-width:460px;
+}
+@media(min-width:768px){.modal-box{border-radius:var(--r-l);padding:28px;width:420px;}}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:20px;letter-spacing:-0.01em;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.fg{display:flex;flex-direction:column;}
+
+/* No data */
+.empty{text-align:center;padding:40px 20px;color:var(--t3);font-size:13px;line-height:1.6;}
+
+/* Data table */
+.dtbl{width:100%;font-size:13px;border-collapse:collapse;}
+.dtbl th{
+  text-align:left;font-size:10px;font-weight:700;letter-spacing:0.07em;
+  text-transform:uppercase;color:var(--t3);padding:8px 0;border-bottom:1px solid var(--b1);
+}
+.dtbl td{padding:10px 0;border-bottom:1px solid var(--b1);color:var(--t2);}
+.dtbl td:first-child{color:var(--t1);font-weight:600;}
+.dtbl tr:last-child td{border-bottom:none;}
+
+/* Kv row */
+.kv{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid var(--b1);align-items:flex-start;}
+.kv:last-child{border-bottom:none;}
+.kv-k{font-size:11px;font-weight:700;color:var(--t3);width:80px;flex-shrink:0;padding-top:1px;letter-spacing:0.04em;text-transform:uppercase;}
+.kv-v{font-size:13px;color:var(--t2);line-height:1.5;}
+
+/* Cal grid for 30-day */
+.cal-g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px;}
+.cal-cell{
+  background:var(--surf2);border-radius:var(--r-s);padding:10px 11px;
+  font-size:11px;color:var(--t2);line-height:1.4;
+}
+.cal-cell b{display:block;font-size:10px;font-weight:700;color:var(--t3);margin-bottom:2px;text-transform:uppercase;}
+
+/* Tag pill */
+.tag{
+  display:inline-flex;align-items:center;font-size:10px;font-weight:700;
+  letter-spacing:0.05em;padding:3px 8px;border-radius:20px;
+  background:var(--surf2);color:var(--t2);text-transform:uppercase;
+}
+
+/* Section divider within accord */
+.sub-lbl{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--t3);margin:16px 0 10px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- DESKTOP SIDEBAR -->
+  <nav id="sidebar" aria-label="Main navigation">
+    <div class="sb-logo">Photo<br>Growth</div>
+    <div id="sb-nav"></div>
+    <div style="margin-top:auto;padding:0 24px;">
+      <div style="font-size:10px;color:var(--t3);line-height:1.6;">
+        Milan · Italy<br>
+        <span id="sb-week"></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <header id="hdr">
+      <div class="hdr-logo">Photo Growth</div>
+      <div class="hdr-right" id="hdr-date"></div>
+    </header>
+    <div id="content" role="main"></div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav id="bnav" aria-label="Navigation"></nav>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="mbg" onclick="A.mClose(event)">
+  <div class="modal-box" id="mbox"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const SK = 'pg_v3';
+
+function loadS() {
+  try { const r = localStorage.getItem(SK); return r ? JSON.parse(r) : {}; }
+  catch { return {}; }
+}
+function saveS() {
+  const {tasks,analytics,stats,exp} = S;
+  localStorage.setItem(SK, JSON.stringify({tasks,analytics,stats,exp}));
+}
+
+const saved = loadS();
+const S = {
+  tab:   'dashboard',
+  exp:   saved.exp   || {},
+  dexp:  {mon:true,wed:false,fri:false,sat:false,sun:false},
+  tasks: saved.tasks || {},
+  analytics: saved.analytics || [],
+  stats: saved.stats || {ig:530, tt:0, tig:1000, ttt:500},
+};
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function isoWeek() {
+  const d = new Date(), day = d.getDay()||7;
+  d.setDate(d.getDate()+4-day);
+  const ys = new Date(d.getFullYear(),0,1);
+  const wn = Math.ceil((((d-ys)/86400000)+1)/7);
+  return `${d.getFullYear()}-W${String(wn).padStart(2,'0')}`;
+}
+function wkLabel(iw) {
+  const [yr,wn] = iw.split('-W');
+  const j4 = new Date(yr,0,4);
+  const ws = new Date(j4);
+  ws.setDate(j4.getDate()-(j4.getDay()||7)+1+(Number(wn)-1)*7);
+  return ws.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+}
+function fDate() {
+  return new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function chkSvg(c='white') {
+  return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>`;
+}
+function chevSvg(extra='') {
+  return `<svg class="acc-chev ${extra}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const NAV = [
+  {id:'dashboard', lbl:'Главная',   icon:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10'},
+  {id:'strategy',  lbl:'Стратегия', icon:'M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5'},
+  {id:'tasks',     lbl:'Задачи',    icon:'M9 11l3 3L22 4 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11'},
+  {id:'analytics', lbl:'Аналитика', icon:'M18 20V10 M12 20V4 M6 20v-6'},
+  {id:'packages',  lbl:'Пакеты',    icon:'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z'},
+];
+function navSvg(d,w=22){
+  return `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+}
+
+const DAYS = [
+  {id:'mon', day:'Понедельник', time:'45 мин · Планирование', tasks:[
+    {id:'m1', txt:'Выбрать тему TikTok и поста для Instagram'},
+    {id:'m2', txt:'Проверить DM и ответить на заявки клиентов'},
+    {id:'m3', txt:'Отметить съёмочные возможности на неделе'},
+  ]},
+  {id:'wed', day:'Среда', time:'90 мин · Съёмка / Монтаж', tasks:[
+    {id:'w1', txt:'Снять BTS, локацию или отдельный кадр для контента'},
+    {id:'w2', txt:'Обработать фото и смонтировать видео для публикации'},
+  ]},
+  {id:'fri', day:'Пятница', time:'45 мин · Публикация', tasks:[
+    {id:'f1', txt:'Опубликовать TikTok + пост в Instagram'},
+    {id:'f2', txt:'Выложить 2–3 Stories'},
+    {id:'f3', txt:'15 мин — живое взаимодействие с нишей'},
+  ]},
+  {id:'sat', day:'Суббота', time:'60 мин · Outreach', tasks:[
+    {id:'s1', txt:'Отправить 3–5 DM / писем клиентам или брендам'},
+    {id:'s2', txt:'Обновить Highlights при необходимости'},
+    {id:'s3', txt:'Аналитика: какие посты дали больше визитов профиля?'},
+  ]},
+  {id:'sun', day:'Воскресенье', time:'30 мин · Итоги', tasks:[
+    {id:'u1', txt:'Обновить доступность для бронирований'},
+    {id:'u2', txt:'Обработать счета или доставить материалы клиентам'},
+    {id:'u3', txt:'Записать 1 вывод и 1 гипотезу на следующую неделю'},
+  ]},
+];
+const ALL_TASKS = DAYS.flatMap(d=>d.tasks.map(t=>t.id));
+
+const QW = [
+  'Pin "Who I Am" Reel на профиль Instagram',
+  'Переписать bio: [что делаю] · [где] · [кому]',
+  'Создать Highlight "Sessions" — хотя бы один слайд сегодня',
+  'Опубликовать первый TikTok на этой неделе',
+  'Топ-5 кадров — в первые 9 постов Grid',
+];
+
+const STRATEGY_DATA = [
+  {
+    id:'tt',
+    title:'TikTok — Top of Funnel',
+    sub:'4 Pillars · 3 поста в неделю · EN/IT/RU',
+    html: () => `
+      <div class="sub-lbl">4 Content Pillars</div>
+      ${[
+        {n:'Pillar 01',name:'The Setup',tag:'Process POV',
+         desc:'60 секунд до кадра: ты идёшь к локации, настраиваешь свет, клиент смеётся не в камеру. Никакой "актёрщины".',
+         hook:'"Nobody talks about what happens BEFORE the photo."'},
+        {n:'Pillar 02',name:'The Frame',tag:'Technical',
+         desc:'Одна конкретная техника за видео. Боке на глазу животного. Итальянское небо как giant softbox. Before/After в Lightroom.',
+         hook:'"This one setting changed how my portraits look."'},
+        {n:'Pillar 03',name:'The Life',tag:'Artist in Italy',
+         desc:'Ты с камерой по Мантуе, Бергамо или Милану. Что ты замечаешь. Никакого прямого CTA — только точка зрения.',
+         hook:'"Things I photograph that most people walk past."'},
+        {n:'Pillar 04',name:'The Result',tag:'Social Proof',
+         desc:'Before/after сессии. Реакция клиента. Карусель с voiceover о своих решениях.',
+         hook:'"We shot in Mantova for an hour. Here\'s what we got."'},
+      ].map(p=>`
+        <div class="pillar">
+          <div class="pillar-n">${p.n} &nbsp;<span class="tag">${p.tag}</span></div>
+          <div class="pillar-name">${p.name}</div>
+          <div class="pillar-desc">${p.desc}</div>
+          <div class="hook">Hook: <em>${esc(p.hook)}</em></div>
+        </div>
+      `).join('')}
+
+      <div class="sub-lbl">30-дневный календарь</div>
+      <div class="cal-g">
+        ${[
+          ['Нед 1 · Пн','The Setup — street'],['Нед 1 · Ср','The Frame — камера'],['Нед 1 · Пт','The Life — Италия'],
+          ['Нед 2 · Пн','The Setup — pet'],  ['Нед 2 · Ср','The Result — портфолио'],['Нед 2 · Пт','The Frame — монтаж'],
+          ['Нед 3 · Пн','The Life — MFW/local'],['Нед 3 · Ср','The Setup — fashion'], ['Нед 3 · Пт','The Frame — свет'],
+          ['Нед 4 · Пн','The Result — отзыв'], ['Нед 4 · Ср','The Life — история'],  ['Нед 4 · Пт','The Setup — любой'],
+        ].map(([b,t])=>`<div class="cal-cell"><b>${b}</b>${t}</div>`).join('')}
+      </div>
+
+      <div class="sub-lbl" style="margin-top:18px;">Язык × Платформа</div>
+      ${[
+        ['EN','Pillars 02 + 04 — глобальный охват, editorial-аудитория'],
+        ['IT','Pillars 01 + 03 — местные клиенты Ломбардии и Пьемонта'],
+        ['RU','Редко: BTS и личный тон — диаспора творческого класса'],
+      ].map(([l,d])=>`
+        <div class="kv">
+          <div class="kv-k">${l}</div>
+          <div class="kv-v">${d}</div>
+        </div>
+      `).join('')}
+
+      <div class="sub-lbl" style="margin-top:18px;">Hooks — шаблоны</div>
+      ${[
+        '"POV: You\'re a photographer and your client just did something unexpected"',
+        '"The photo nobody sees vs the photo the client picks"',
+        '"Setting up a shot in [Italian city]. Watch what happens."',
+        '"I photograph animals like they\'re fashion models. Here\'s why it works."',
+        '"Italy has the best light in the world and I can prove it in 30 seconds."',
+      ].map(h=>`<div class="hook" style="margin-bottom:6px;">${esc(h)}</div>`).join('')}
+    `
+  },
+  {
+    id:'ig',
+    title:'Instagram — Conversion Engine',
+    sub:'Grid · Highlights · Stories · DM',
+    html: () => `
+      <div class="sub-lbl">Grid Logic</div>
+      <div style="background:var(--surf2);border-radius:var(--r-s);padding:14px;margin-bottom:14px;font-size:13px;color:var(--t2);line-height:1.6;">
+        <strong style="color:var(--t1);display:block;margin-bottom:6px;">Единый визуальный язык важнее разнообразия тем.</strong>
+        Десатурированные мидтоны · Тёплые тени · Чистые света · Формат 4:5 везде.<br>
+        <span style="margin-top:8px;display:block;">Чередование: Fashion → Street → Pet → Portrait. Никогда два фото питомцев подряд.</span>
+      </div>
+
+      <div class="sub-lbl">6 Highlights — обязательные</div>
+      ${[
+        ['01','Sessions','5–8 слайдов: пакеты, примеры, цены. Как нанять тебя — сразу.'],
+        ['02','Work','Лучшие 10–12 кадров из всех ниш. Портфолио прямо в профиле.'],
+        ['03','Animals','Отдельный раздел для владельцев питомцев — они ищут это быстро.'],
+        ['04','BTS','Behind the Scenes — репостнутые Stories со съёмок. Очеловечивает бренд.'],
+        ['05','Press','Alamy, Shutterstock, любые фичи, скриншоты отзывов. Social proof.'],
+        ['06','About','3–4 слайда. Ты, камера, город. Не резюме — точка зрения.'],
+      ].map(([n,name,desc])=>`
+        <div class="hl">
+          <div class="hl-n">${n}</div>
+          <div><div class="hl-name">${name}</div><div class="hl-desc">${desc}</div></div>
+        </div>
+      `).join('')}
+
+      <div class="sub-lbl" style="margin-top:18px;">Stories — правило 80/20</div>
+      ${[
+        ['80% Give','Процесс · Мнения о свете и локациях · "На этой неделе снимаю..." · Экран Lightroom с voiceover'],
+        ['20% Ask','"2 слота в мае. Пиши мне." — раз в 4–5 дней. Один CTA на серию. Никогда слово "hire" дважды.'],
+      ].map(([t,d])=>`
+        <div style="border:1px solid var(--b1);border-radius:var(--r-s);padding:14px;margin-bottom:8px;">
+          <div style="font-size:12px;font-weight:800;margin-bottom:5px;letter-spacing:0.04em;">${t}</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.5;">${d}</div>
+        </div>
+      `).join('')}
+
+      <div class="sub-lbl" style="margin-top:18px;">Воронка DM</div>
+      <div class="kv-v" style="font-size:13px;color:var(--t2);line-height:1.7;padding:12px;background:var(--surf2);border-radius:var(--r-s);">
+        TikTok (охват) → Instagram profile → Highlights (доверие) → Stories CTA → DM → Пакет
+      </div>
+    `
+  },
+  {
+    id:'pet',
+    title:'Pet Fashion Niche',
+    sub:'Editorial animal portraiture',
+    html: () => `
+      <div style="background:var(--acc);color:var(--acc-i);border-radius:var(--r-m);padding:18px;margin-bottom:16px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.5;margin-bottom:6px;">Ключевая мысль</div>
+        <div style="font-size:15px;font-weight:700;line-height:1.45;">"Editorial animal portraiture" —<br>не "cute pet photos"</div>
+      </div>
+      ${[
+        ['Язык','Не "фотография питомца" — "портрет животного". Не "cute" — "character."'],
+        ['Визуал','Снимай животных как fashion-клиентов: dramatic light, осознанный фон, намеренный стиль.'],
+        ['Цена','Одинаковый рейт с человеческими портретами. Одна цена = один сигнал качества.'],
+        ['Tagline','"Think Vogue-adjacent. Your dog as the subject, not the backdrop."'],
+        ['Таргет','Владельцы собак в богатых пригородах Милана. Luxury pet-бренды. Pet fashion.'],
+        ['Highlight','Отдельный Highlight "Animals" — так владелец итальянского грейхаунда находит тебя за 3 секунды.'],
+      ].map(([k,v])=>`<div class="kv"><div class="kv-k">${k}</div><div class="kv-v">${v}</div></div>`).join('')}
+    `
+  },
+  {
+    id:'port',
+    title:'Portfolio Strategy',
+    sub:'Experts · Brands · Magazines',
+    html: () => `
+      ${[
+        {aud:'A — Influencers & Experts', items:[
+          'BTS и почти-кандидные кадры — аутентичность важнее идеала',
+          'Италия как персонаж, не декорация. Mantova, Bergamo, Milan',
+          'Показывай процесс в соцсетях — они нанимают тех, кого понимают',
+          'Outreach-тон: "Думаю, мы можем сделать что-то интересное." Коллаборация — не продажа',
+        ]},
+        {aud:'B — High-End Brands', items:[
+          '2–3 mock campaign set\'а: снять так, как будто это уже кампания',
+          'Организуй портфолио по usecase: For Brands / For People / For Publications',
+          'Commercial usage rights — укажи явно в пакете La Campagna',
+          'Outreach: итальянским бутикам — по-итальянски, международным — по-английски',
+        ]},
+        {aud:'C — Magazines & Editorial', items:[
+          'Ориентиры: Vogue Italia, Grazia, Marie Claire Italia — их стиль, их open calls',
+          'Сабмить editorial stock на Alamy и Shutterstock (уже подключён)',
+          'PDF-портфолио: 10–15 кадров + bio + город. Не Instagram-ссылка — PDF',
+          'Caption-дисциплина: "Subject, Location, Year. Photo by [Name]." — editorial thinking',
+        ]},
+      ].map(({aud,items})=>`
+        <div style="margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:800;padding-bottom:8px;border-bottom:2px solid var(--t1);margin-bottom:10px;letter-spacing:0.01em;">${aud}</div>
+          ${items.map(i=>`
+            <div style="display:flex;gap:10px;padding:8px 0;font-size:13px;color:var(--t2);border-bottom:1px solid var(--b1);">
+              <span style="color:var(--t3);flex-shrink:0;">—</span><span>${i}</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    `
+  },
+];
+
+const PACKAGES = [
+  {
+    tier:'Quick Session · 01', name:'Il Momento',
+    tag:'1 час. Одна история. Двадцать кадров.',
+    price:'€180 – 280', pnote:'базовая цена', feat:false,
+    items:['60–75 минут съёмки','15–20 обработанных кадров','Приватная галерея · 48 ч','Портреты · Брендинг · Питомцы']
+  },
+  {
+    tier:'Deep Dive · 02', name:'Il Racconto',
+    tag:'Полная editorial-сессия.',
+    price:'€450 – 700', pnote:'рекомендуемый пакет', feat:true,
+    items:['3–4 часа · 1–2 локации','40–60 обработанных кадров','BTS-клип для соцсетей клиента','72 ч доставка','Блогеры · Инфлюенсеры · Личный бренд']
+  },
+  {
+    tier:'Fashion & Brand · 03', name:'La Campagna',
+    tag:'Кампания. Не просто фотографии.',
+    price:'€900 – 1800', pnote:'включая art direction', feat:false,
+    items:['Полдня или целый день','80–120 кадров + выбор локации','Базовый art direction включён','Commercial usage rights (1 год)','Бренды · Бутики · Журналы']
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ENGINE
+// ═══════════════════════════════════════════════════════════
+const A = {
+
+  init() {
+    document.getElementById('hdr-date').textContent = fDate();
+    const wk = isoWeek().split('-W')[1];
+    const sbw = document.getElementById('sb-week');
+    if(sbw) sbw.textContent = `Неделя ${wk}`;
+    this.buildNav();
+    this.go('dashboard');
+    this.initSW();
+    this.makeIcon();
+  },
+
+  initSW() {
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    }
+  },
+
+  makeIcon() {
+    try {
+      const c = document.createElement('canvas');
+      c.width = c.height = 512;
+      const x = c.getContext('2d');
+      x.fillStyle = '#0D0D0D';
+      x.beginPath();
+      if(x.roundRect) x.roundRect(0,0,512,512,90);
+      else x.rect(0,0,512,512);
+      x.fill();
+      x.fillStyle = '#FFFFFF';
+      x.font = '800 190px -apple-system,BlinkMacSystemFont,sans-serif';
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText('PG', 256, 235);
+      x.font = '500 58px -apple-system,sans-serif';
+      x.fillStyle = 'rgba(255,255,255,0.38)';
+      x.fillText('GROWTH', 256, 360);
+      document.getElementById('ati').href = c.toDataURL();
+    } catch(e){}
+  },
+
+  buildNav() {
+    // Bottom nav
+    document.getElementById('bnav').innerHTML = NAV.map(n=>`
+      <button class="ni${S.tab===n.id?' on':''}" onclick="A.go('${n.id}')" aria-label="${n.lbl}">
+        ${navSvg(n.icon)}
+        <span class="ni-lbl">${n.lbl}</span>
+      </button>
+    `).join('');
+
+    // Sidebar
+    document.getElementById('sb-nav').innerHTML = NAV.map(n=>`
+      <button class="sni${S.tab===n.id?' on':''}" onclick="A.go('${n.id}')" aria-label="${n.lbl}">
+        ${navSvg(n.icon,16)}
+        ${n.lbl}
+      </button>
+    `).join('');
+  },
+
+  go(tab) {
+    S.tab = tab;
+    this.buildNav();
+    const c = document.getElementById('content');
+    c.innerHTML = {
+      dashboard:()=>this.rDash(),
+      strategy: ()=>this.rStrategy(),
+      tasks:    ()=>this.rTasks(),
+      analytics:()=>this.rAnalytics(),
+      packages: ()=>this.rPackages(),
+    }[tab]();
+    c.scrollTop = 0;
+  },
+
+  // ──────────────────────────────────────────────────────────
+  // DASHBOARD
+  // ──────────────────────────────────────────────────────────
+  rDash() {
+    const wk = isoWeek();
+    const wt = S.tasks[wk]||{};
+    const done = ALL_TASKS.filter(id=>wt[id]).length;
+    const total = ALL_TASKS.length;
+    const pct = Math.round(done/total*100);
+    const igP = Math.min(100,Math.round(S.stats.ig/S.stats.tig*100));
+    const ttP = Math.min(100,Math.round(S.stats.tt/S.stats.ttt*100));
+    const qk = `qw_${wk}`;
+    const qs = S.tasks[qk]||{};
+
+    const lastA = S.analytics.length ? S.analytics[S.analytics.length-1] : null;
+    const prevA = S.analytics.length>1 ? S.analytics[S.analytics.length-2] : null;
+    const dlt = (k)=>{
+      if(!prevA) return '';
+      const d = (lastA[k]||0)-(prevA[k]||0);
+      if(d===0) return `<span style="color:var(--t3)">→</span>`;
+      return d>0?`<span style="color:var(--ok)">+${d}</span>`:`<span style="color:var(--t3)">${d}</span>`;
+    };
+
+    return `
+    <div class="pg">
+      <div class="sec-lbl">Платформы</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="stat-c" onclick="A.mStats()">
+          <div class="stat-lbl">Instagram</div>
+          <div class="stat-val">${S.stats.ig.toLocaleString()}</div>
+          <div class="stat-sub">→ ${S.stats.tig.toLocaleString()} цель</div>
+          <div class="prog-track" style="margin-top:10px;"><div class="prog-fill" style="width:${igP}%"></div></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">${igP}% · ещё ${(S.stats.tig-S.stats.ig).toLocaleString()}</div>
+        </div>
+        <div class="stat-c" onclick="A.mStats()">
+          <div class="stat-lbl">TikTok</div>
+          <div class="stat-val">${S.stats.tt.toLocaleString()}</div>
+          <div class="stat-sub">→ ${S.stats.ttt.toLocaleString()} цель</div>
+          <div class="prog-track" style="margin-top:10px;"><div class="prog-fill" style="width:${ttP}%"></div></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">${ttP || 0}% · Новый</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <button class="btn btn-ghost" style="font-size:12px;padding:7px 16px;" onclick="A.mStats()">Обновить цифры</button>
+      </div>
+    </div>
+
+    <div class="pg">
+      <div class="sec-lbl">Consistency — Неделя ${wk.split('-W')[1]}</div>
+      <div class="card card-p">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <div style="font-size:32px;font-weight:800;letter-spacing:-0.035em;line-height:1;">${done}<span style="font-size:18px;font-weight:500;color:var(--t3)">/${total}</span></div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;">задач выполнено</div>
+          </div>
+          <div style="font-size:46px;font-weight:800;letter-spacing:-0.04em;color:${pct===100?'var(--ok)':pct>60?'var(--t1)':'var(--t3)'};">${pct}<span style="font-size:20px">%</span></div>
+        </div>
+        <div class="prog-track" style="height:5px;"><div class="prog-fill" style="width:${pct}%;"></div></div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:14px;font-size:13px;" onclick="A.go('tasks')">Открыть задачи</button>
+      </div>
+    </div>
+
+    <div class="pg">
+      <div class="sec-lbl">Quick Wins — первые 7 дней</div>
+      <div class="card">
+        ${QW.map((w,i)=>`
+          <div class="ti" onclick="A.togQW('${qk}',${i})">
+            <div class="chk ${qs[i]?'on':''}">${qs[i]?chkSvg():''}</div>
+            <div class="ti-txt ${qs[i]?'done':''}">${esc(w)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="pg">
+      <div class="sec-lbl">Последняя запись</div>
+      ${lastA ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${[['IG','ig'],['TikTok','tt'],['Reach','reach'],['Inquiries','inquiries']].map(([l,k])=>`
+            <div class="stat-c" style="cursor:default;">
+              <div class="stat-lbl">${l}</div>
+              <div style="font-size:22px;font-weight:800;letter-spacing:-0.02em;">${lastA[k]||0}</div>
+              <div style="font-size:11px;margin-top:3px;">${dlt(k)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--t3);">${lastA.label||''}</div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:10px;font-size:13px;" onclick="A.go('analytics')">Добавить запись</button>
+      ` : `
+        <div class="empty">Нет записей аналитики.<br>Добавь первую в разделе «Аналитика».</div>
+        <button class="btn btn-dark btn-full" onclick="A.go('analytics')">Открыть аналитику</button>
+      `}
+    </div>`;
+  },
+
+  togQW(qk,i) {
+    if(!S.tasks[qk]) S.tasks[qk]={};
+    S.tasks[qk][i] = !S.tasks[qk][i];
+    saveS(); this.go('dashboard');
+  },
+
+  mStats() {
+    document.getElementById('mbox').innerHTML = `
+      <div class="modal-title">Обновить цифры</div>
+      <div class="fgrid">
+        <div class="fg"><label class="inp-lbl">Instagram</label><input class="inp" type="number" id="mi" value="${S.stats.ig}"></div>
+        <div class="fg"><label class="inp-lbl">TikTok</label><input class="inp" type="number" id="mt" value="${S.stats.tt}"></div>
+        <div class="fg"><label class="inp-lbl">Цель IG</label><input class="inp" type="number" id="mig" value="${S.stats.tig}"></div>
+        <div class="fg"><label class="inp-lbl">Цель TikTok</label><input class="inp" type="number" id="mtt" value="${S.stats.ttt}"></div>
+      </div>
+      <button class="btn btn-dark btn-full" onclick="A.saveStats()">Сохранить</button>
+    `;
+    document.getElementById('mbg').classList.add('on');
+  },
+
+  saveStats() {
+    S.stats.ig  = parseInt(document.getElementById('mi').value)||0;
+    S.stats.tt  = parseInt(document.getElementById('mt').value)||0;
+    S.stats.tig = parseInt(document.getElementById('mig').value)||1000;
+    S.stats.ttt = parseInt(document.getElementById('mtt').value)||500;
+    saveS(); this.mClose(); this.go('dashboard');
+  },
+
+  mClose(e) {
+    if(!e || e.target===document.getElementById('mbg')) {
+      document.getElementById('mbg').classList.remove('on');
+    }
+  },
+
+  // ──────────────────────────────────────────────────────────
+  // STRATEGY
+  // ──────────────────────────────────────────────────────────
+  rStrategy() {
+    return `
+    <div class="pg">
+      <div class="sec-lbl">Стратегия роста</div>
+      <div class="card" style="overflow:visible;">
+        ${STRATEGY_DATA.map(s=>`
+          <div class="acc-item">
+            <div class="acc-hdr" onclick="A.togS('${s.id}')">
+              <div>
+                <div class="acc-title">${s.title}</div>
+                <div class="acc-sub">${s.sub}</div>
+              </div>
+              ${chevSvg(S.exp[s.id]?'on':'')}
+            </div>
+            <div class="acc-body${S.exp[s.id]?' on':''}">
+              <div class="acc-cnt">${s.html()}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  },
+
+  togS(id) {
+    S.exp[id] = !S.exp[id];
+    saveS(); this.go('strategy');
+  },
+
+  // ──────────────────────────────────────────────────────────
+  // TASKS
+  // ──────────────────────────────────────────────────────────
+  rTasks() {
+    const wk = isoWeek();
+    const wt = S.tasks[wk]||{};
+    const done = ALL_TASKS.filter(id=>wt[id]).length;
+    const total = ALL_TASKS.length;
+    const pct = Math.round(done/total*100);
+
+    return `
+    <div class="pg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="sec-lbl" style="margin:0;">Неделя ${wk.split('-W')[1]}</div>
+        <div style="font-size:12px;color:var(--t3);">${done} / ${total}</div>
+      </div>
+      <div class="prog-track" style="height:2px;margin-bottom:20px;"><div class="prog-fill" style="width:${pct}%;"></div></div>
+
+      ${DAYS.map(day=>{
+        const dd = day.tasks.filter(t=>wt[t.id]).length;
+        const ex = S.dexp[day.id];
+        return `
+          <div class="day-blk">
+            <div class="day-hdr" onclick="A.togDay('${day.id}')">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="day-name">${day.day}</div>
+                  <div class="day-dots">${day.tasks.map(t=>`<div class="dot ${wt[t.id]?'on':''}"></div>`).join('')}</div>
+                </div>
+                <div class="day-meta">${day.time}</div>
+              </div>
+              <svg style="width:16px;height:16px;color:var(--t3);flex-shrink:0;transition:transform 0.2s;transform:rotate(${ex?180:0}deg);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            ${ex ? `
+              <div class="day-body">
+                ${day.tasks.map(task=>`
+                  <div class="ti" onclick="A.togTask('${wk}','${task.id}')">
+                    <div class="chk ${wt[task.id]?'on':''}">${wt[task.id]?chkSvg():''}</div>
+                    <div class="ti-txt ${wt[task.id]?'done':''}">${esc(task.txt)}</div>
+                  </div>
+                `).join('')}
+              </div>` : ''}
+          </div>`;
+      }).join('')}
+
+      <button class="btn btn-ghost btn-full" style="margin-top:8px;font-size:12px;color:var(--t3);"
+        onclick="if(confirm('Сбросить все задачи этой недели?')){A.resetWk()}">
+        Сбросить неделю
+      </button>
+    </div>`;
+  },
+
+  togTask(wk,id) {
+    if(!S.tasks[wk]) S.tasks[wk]={};
+    S.tasks[wk][id] = !S.tasks[wk][id];
+    saveS(); this.go('tasks');
+  },
+
+  togDay(id) {
+    S.dexp[id] = !S.dexp[id];
+    this.go('tasks');
+  },
+
+  resetWk() {
+    S.tasks[isoWeek()] = {};
+    saveS(); this.go('tasks');
+  },
+
+  // ──────────────────────────────────────────────────────────
+  // ANALYTICS
+  // ──────────────────────────────────────────────────────────
+  rAnalytics() {
+    const {analytics} = S;
+    return `
+    <div class="pg">
+      <div class="sec-lbl">Записать неделю</div>
+      <div class="card card-p">
+        <div class="fgrid">
+          <div class="fg"><label class="inp-lbl">IG Followers</label><input class="inp" type="number" id="ai" placeholder="${S.stats.ig}" inputmode="numeric"></div>
+          <div class="fg"><label class="inp-lbl">TikTok</label><input class="inp" type="number" id="at" placeholder="0" inputmode="numeric"></div>
+          <div class="fg"><label class="inp-lbl">Story Reach</label><input class="inp" type="number" id="ar" placeholder="0" inputmode="numeric"></div>
+          <div class="fg"><label class="inp-lbl">Inquiries</label><input class="inp" type="number" id="aq" placeholder="0" inputmode="numeric"></div>
+        </div>
+        <button class="btn btn-dark btn-full" onclick="A.logA()">Сохранить неделю</button>
+      </div>
+    </div>
+
+    <div class="pg">
+      <div class="sec-lbl">IG Growth Chart</div>
+      <div class="chart-wrap">
+        <div class="chart-lbl">Instagram Followers</div>
+        ${analytics.length<2 ? '<div class="empty" style="padding:24px 0;">Нужно минимум 2 записи для графика</div>' : this.drawChart(analytics)}
+      </div>
+    </div>
+
+    <div class="pg">
+      <div class="sec-lbl">История</div>
+      ${analytics.length===0 ? '<div class="empty">Нет записей</div>' : `
+        <div class="card card-p">
+          <table class="dtbl">
+            <thead><tr>
+              <th>Неделя</th><th>IG</th><th>TikTok</th><th>Reach</th><th>Leads</th>
+            </tr></thead>
+            <tbody>
+              ${[...analytics].reverse().slice(0,8).map(e=>`
+                <tr>
+                  <td>${esc(e.label||'')}</td>
+                  <td>${e.ig||'—'}</td><td>${e.tt||'—'}</td>
+                  <td>${e.reach||'—'}</td><td>${e.inquiries||'—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px;font-size:12px;color:var(--t3);"
+          onclick="if(confirm('Удалить всю историю аналитики?')){A.clearA()}">
+          Очистить историю
+        </button>
+      `}
+    </div>`;
+  },
+
+  drawChart(analytics) {
+    const data = analytics.slice(-10);
+    const vals = data.map(e=>e.ig||0);
+    const minV = Math.min(...vals), maxV = Math.max(...vals);
+    const range = maxV-minV||1;
+    const W=560,H=130,PL=36,PR=10,PT=10,PB=28;
+    const iw = W-PL-PR, ih = H-PT-PB;
+    const pts = data.map((e,i)=>{
+      const x = PL + (i/(data.length-1))*iw;
+      const y = PT + (1-(e.ig-minV)/range)*ih;
+      return {x,y,e};
+    });
+    const poly = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const area = `${PL},${PT+ih} ` + poly + ` ${pts[pts.length-1].x.toFixed(1)},${PT+ih}`;
+
+    const gridVals = [minV, Math.round(minV+range*0.5), maxV];
+    return `
+    <svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0D0D0D" stop-opacity="0.1"/>
+          <stop offset="100%" stop-color="#0D0D0D" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${gridVals.map(v=>{
+        const y = PT+(1-(v-minV)/range)*ih;
+        return `
+          <line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="var(--b1)" stroke-width="0.8"/>
+          <text x="${PL-4}" y="${y+4}" text-anchor="end" font-size="9" fill="var(--t3)" font-family="-apple-system,sans-serif">${v}</text>
+        `;
+      }).join('')}
+      <polygon points="${area}" fill="url(#ag)"/>
+      <polyline points="${poly}" fill="none" stroke="var(--acc)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${pts.map((p,i)=>`
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="var(--acc)"/>
+        <text x="${p.x.toFixed(1)}" y="${H}" text-anchor="middle" font-size="9" fill="var(--t3)" font-family="-apple-system,sans-serif">
+          ${esc(p.e.label||'W'+String(p.e.week||'').split('-W')[1])}
+        </text>
+      `).join('')}
+    </svg>`;
+  },
+
+  logA() {
+    const ig = parseInt(document.getElementById('ai').value);
+    if(!ig){ alert('Введи кол-во IG-подписчиков'); return; }
+    const wk = isoWeek();
+    const entry = {
+      week:wk, label:wkLabel(wk),
+      ig, tt:parseInt(document.getElementById('at').value)||0,
+      reach:parseInt(document.getElementById('ar').value)||0,
+      inquiries:parseInt(document.getElementById('aq').value)||0,
+    };
+    const idx = S.analytics.findIndex(e=>e.week===wk);
+    if(idx>=0) S.analytics[idx]=entry; else S.analytics.push(entry);
+    S.stats.ig = ig;
+    S.stats.tt = entry.tt;
+    saveS(); this.go('analytics');
+  },
+
+  clearA() { S.analytics=[]; saveS(); this.go('analytics'); },
+
+  // ──────────────────────────────────────────────────────────
+  // PACKAGES
+  // ──────────────────────────────────────────────────────────
+  rPackages() {
+    return `
+    <div class="pg">
+      <div class="sec-lbl">Мои пакеты · Quick Reference</div>
+      ${PACKAGES.map(p=>`
+        <div class="pk-card ${p.feat?'feat':''}">
+          <div class="pk-tier">${p.tier}</div>
+          <div class="pk-name">${p.name}</div>
+          <div class="pk-tag">${p.tag}</div>
+          <div class="pk-price">${p.price}</div>
+          <div class="pk-pnote">${p.pnote}</div>
+          <ul class="pk-feat">${p.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+        </div>
+      `).join('')}
+
+      <div class="card card-p" style="margin-top:6px;">
+        <div style="font-size:10px;font-weight:800;letter-spacing:0.09em;text-transform:uppercase;color:var(--t3);margin-bottom:12px;">Психология цен</div>
+        ${[
+          ['Якорь','Il Racconto — основной пакет, делает Il Momento "выгодным"'],
+          ['Не дешевить','В Северной Италии €150 подозрительнее, чем €250'],
+          ['Скидка 15-20%','Только первым клиентам в DM — не публично'],
+          ['Дефицит','"4 слота в мае" — создаёт срочность без агрессии'],
+          ['CTA','Никогда слово hire дважды в одном сообщении'],
+        ].map(([k,v])=>`<div class="kv"><div class="kv-k">${k}</div><div class="kv-v">${v}</div></div>`).join('')}
+      </div>
+    </div>`;
+  },
+};
+
+document.addEventListener('DOMContentLoaded', ()=>A.init());
+</script>
+</body>
+</html>
